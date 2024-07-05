@@ -9,10 +9,10 @@ const sprout_social_url = 'https://api.sproutsocial.com/v1';
 let post_json = [];
 
 /** Edit variables */
-const bearer_token = 'MjIwMDk2OHwxNzEzOTY5MzY3fGRjYmJmNjM3LTExMjUtNDEzMi1iZWY2LWI5ODgyMTllYmRlOA==';
-const dataset_id = 'sprout_social';
-const table_id = 'data';   
-const key_file_path = './big-query-421322-346e69242b96.json';
+const bearer_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const dataset_id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const table_id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';   
+const key_file_path = './xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.json';
 /** End edit variables */
 
 const key_file = JSON.parse(fs.readFileSync(key_file_path));
