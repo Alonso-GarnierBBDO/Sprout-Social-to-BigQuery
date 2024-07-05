@@ -30,7 +30,7 @@ The script is set to automatically retrieve data from the previous day.
 
 ## Useful Links
 
-- [Sprout Social API Documentation](https://developers.sproutsocial.com/)
+- [Sprout Social API Documentation](https://api.sproutsocial.com/docs/)
 - [BigQuery Documentation](https://cloud.google.com/bigquery/docs/)
 
 ## Notes

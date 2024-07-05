@@ -6,12 +6,13 @@ console.clear();
 /** Variables */
 
 const sprout_social_url = 'https://api.sproutsocial.com/v1';
+let post_json = [];
 
 /** Edit variables */
-const bearer_token = 'xxxxxxxxxxxxxxxxx';
-const dataset_id = 'xxxxxxxxxxxxxxxxx';
-const table_id = 'xxxxxxxxxxxxxxxxx';   
-const key_file_path = './xxxxxxxxxxxxxxxxx.json';
+const bearer_token = 'MjIwMDk2OHwxNzEzOTY5MzY3fGRjYmJmNjM3LTExMjUtNDEzMi1iZWY2LWI5ODgyMTllYmRlOA==';
+const dataset_id = 'sprout_social';
+const table_id = 'data';   
+const key_file_path = './big-query-421322-346e69242b96.json';
 /** End edit variables */
 
 const key_file = JSON.parse(fs.readFileSync(key_file_path));
@@ -25,7 +26,7 @@ const bigquery = new BigQuery({
 
 /** End Variables */
 
-const syncData = async (url, type, current_page = null) => {
+const syncData = async (url, type, current_page = null, client_id = null) => {
     let data;
     let json;
 
@@ -48,8 +49,8 @@ const syncData = async (url, type, current_page = null) => {
               "customer_profile_id"
             ],
             "filters": [
-              "customer_profile_id.eq(6362797)",
-              "created_time.in(2024-07-03T00:00:00..2024-07-03T23:59:59)"
+              `customer_profile_id.eq(${client_id})`,
+              getYesterdayDateRange(),
             ],
             "metrics": [
               "lifetime.impressions",
@@ -175,7 +176,7 @@ const flattenObject = (obj, parentKey = '', res = {}) => {
     return res;
 };
 
-const clientID = async () => {
+const clientID = async () => {  
 
     let id;
 
@@ -190,16 +191,34 @@ const clientID = async () => {
     return id; 
 }
 
-const analyticsPost = async (id) => {
+const customersGet = async (id) => {
 
-    let post_json = [];
+    let data;
+
+    try{
+        
+        const customers_JSON = await syncData(`/${id}/metadata/customer/`, 'GET');
+        if(customers_JSON){
+            data = customers_JSON.data; 
+        }
+
+    }catch(err){
+        console.error(err);
+    }
+
+    return data;
+
+}
+
+const analyticsPost = async (id, client_id) => {
+
 
     try{
         let all_pages = 1;
-        let current_page = 1;
+        let current_page = 1; 
 
         do{
-            const postJSON = await syncData(`/${id}/analytics/posts`, 'POST', current_page);
+            const postJSON = await syncData(`/${id}/analytics/posts`, 'POST', current_page, client_id);
             const get_post_data = postJSON.data;
             const get_all_page = postJSON.paging.total_pages;
 
@@ -260,9 +279,9 @@ const updateSchema = async (table, newFields) => {
     await table.setMetadata({ schema: newScheme }); 
 };
 
-const schemaAuto = (rows) => {
+const schemaAuto = () => {
     const schema = {};
-    rows.forEach(row => {
+    post_json.forEach(row => {
       Object.keys(row).forEach(key => {
         if (!schema[key]) {
           schema[key] = typeof row[key] === 'object' ? 'STRING' : typeof row[key] === 'boolean' ? 'BOOLEAN' : 'STRING';
@@ -275,6 +294,18 @@ const schemaAuto = (rows) => {
       type: schema[key].toUpperCase()
     }));
 };
+
+const getYesterdayDateRange = () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1); // Obtener la fecha de ayer
+
+    // Formatear la fecha en el formato YYYY-MM-DDTHH:mm:ss
+    const startOfDay = `${yesterday.getFullYear()}-${('0' + (yesterday.getMonth() + 1)).slice(-2)}-${('0' + yesterday.getDate()).slice(-2)}T00:00:00`;
+    const endOfDay = `${yesterday.getFullYear()}-${('0' + (yesterday.getMonth() + 1)).slice(-2)}-${('0' + yesterday.getDate()).slice(-2)}T23:59:59`;
+
+    return `created_time.in(${startOfDay}..${endOfDay})`;
+};
   
 
 const main = async () => {
@@ -283,8 +314,14 @@ const main = async () => {
     const table = dataset.table(table_id);
 
     const id = await clientID();
-    const data = await analyticsPost(id);
-    const schema = schemaAuto(data);
+    const all_customers = await customersGet(id);
+
+    for (const e of all_customers) {
+        const customer_id = e.customer_profile_id;
+        await analyticsPost(id, customer_id);
+    }
+
+    const schema = schemaAuto();
     const currentSchema = await getCurrentSchema(table);
     const newFields = getNewFields(currentSchema, schema);
 
@@ -292,7 +329,7 @@ const main = async () => {
         await updateSchema(table, newFields);
     }
 
-    await insertDataBigQuery(data);
+    await insertDataBigQuery(post_json);
 
 }
 
