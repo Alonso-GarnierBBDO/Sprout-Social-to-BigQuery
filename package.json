@@ -1,0 +1,30 @@
+{
+  "name": "sproutsocial_to_bigquery",
+  "version": "1.0.0",
+  "description": "Export data to big query from sprout social",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alonso-GarnierBBDO/Sprout-Social-to-BigQuery.git"
+  },
+  "keywords": [
+    "Sprout Social",
+    "Big",
+    "Query",
+    "Transfer"
+  ],
+  "author": "Alonso Artavia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alonso-GarnierBBDO/Sprout-Social-to-BigQuery/issues"
+  },
+  "homepage": "https://github.com/Alonso-GarnierBBDO/Sprout-Social-to-BigQuery#readme",
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.8.0",
+    "latest": "^0.2.0",
+    "nodemon": "^3.1.4"
+  }
+}
